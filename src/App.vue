@@ -87,9 +87,6 @@
           <h2>Enemigo</h2>
           <p v-if="monstruoActivo && monstruoActivo.vida > 0"><button @click="golpearMonstruoActivo()" :disabled="monstruoActivo.atacando">¡Atacar enemigo!</button></p>
           <p v-else><button @click="generaMonstruoActivo()">¡Nuevo enemigo!</button></p>
-          <div class="progress-bar-container vida">
-            <div class="progress-bar" :style="'width: ' + porcentageVidaEnemigo + '%'"></div>
-          </div>
           <Monstruo :datos="monstruoActivo"></Monstruo>
         </template>
         <div v-if="dropActual.length">
@@ -145,10 +142,6 @@
         'estadisticas',
         'historico',
       ]),
-      porcentageVidaJugador(){
-        let totalInicial = this.atributosBase.vidaJugador + this.atributosBase.vidaPociones + (this.equipado ? this.equipado.estadisticas.vida : 0)
-        return Math.round(this.total('vida') * 100 / totalInicial)
-      },
       porcentageVidaEnemigo(){
         return Math.round(this.monstruoActivo.vida * 100 / this.monstruoActivo.vidaInicial)
       },
@@ -159,7 +152,6 @@
     mounted(){
       this.generaMonstruoActivo()
       this.rellenarTienda()
-      this.agregarAlInventario(this.generaPocion()) // TEST
     }
   }
 </script>
