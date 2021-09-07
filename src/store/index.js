@@ -132,6 +132,11 @@ export default new Vuex.Store({
     equiparObjeto(state, objeto){
       state.equipado = objeto
     },
+    desequiparObjeto(state, objeto){
+      // Aquí paso el objeto para cuando haya más
+      // ranuras de equipamiento, no sólo el arma.
+      state.equipado = null
+    },
     eliminarPocionDeDrop(state, pocion){
       state.dropPociones = state.dropPociones.filter(p => p.id !== pocion.id)
     },

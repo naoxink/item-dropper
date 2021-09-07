@@ -1,5 +1,8 @@
 <template>
-  <div class="monstruo">
+  <div class="monstruo" v-if="datos">
+    <h2>Enemigo</h2>
+    <p v-if="datos && datos.vida > 0"><button @click="golpearMonstruoActivo()" :disabled="datos.atacando">¡Atacar enemigo!</button></p>
+    <p v-else><button @click="generaMonstruoActivo()">¡Nuevo enemigo!</button></p>
     <div class="progress-bar-container vida">
       <div class="progress-bar" :style="'width: ' + porcentageVidaEnemigo + '%'"></div>
     </div>
@@ -9,8 +12,8 @@
 </template>
 
 <script>
-  import { mapState } from 'vuex'
   import mx from '@/mixins'
+  import { mapState } from 'vuex'
 
   export default {
     name: 'Monstruo',
@@ -18,10 +21,16 @@
     mixins: [ mx ],
     computed: {
       ...mapState([
-        'monstruoActivo'
+        'monstruoActivo',
+        'atributos',
+        'atributosBase',
+        'totalDrops',
+        'nivelMax',
+        'estadisticas',
+        'inventario'
       ]),
       porcentageVidaEnemigo(){
-        return Math.round(this.monstruoActivo.vida * 100 / this.monstruoActivo.vidaInicial)
+        return Math.round(this.datos.vida * 100 / this.datos.vidaInicial)
       }
     }
   }

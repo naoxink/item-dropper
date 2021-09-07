@@ -1,94 +1,22 @@
 <template>
   <div id="app">
-    <div v-if="tienda.mostrando">
-      <div class="tienda">
-        <p>Créditos disponibles: <strong>{{ creditoTotal }}</strong>¢</p>
-        <p>La tienda se renovará en <strong>{{ 5 - (totalDrops % 5) }}</strong> muertes</p>
-        <div style="overflow:hidden;">
-          <div>
-            <h2>Pociones</h2>
-            <div class="item pocion" v-for="pocion of tienda.pociones">
-              <button @click="comprarObjeto(pocion)" :disabled="pocion.precio > creditoTotal">Comprar</button>
-              <small>
-                <span class="item-stat unico">Precio: {{ pocion.precio }}¢</span>
-              </small>
-              {{ pocion.nombre }} {{ pocion.permanente ? 'permanente' : '' }} (+{{ formatoNumero(pocion.incremento) }})
-            </div>
-          </div>
-          <div>
-            <h2>Objetos</h2>
-            <div class="item" :class="objeto.clase" v-for="objeto of tienda.objetos">
-              <button @click="comprarObjeto(objeto)" :disabled="objeto.estadisticas.precio > creditoTotal">Comprar</button>
-              <small>
-                <span class="item-stat unico">Precio: {{ objeto.estadisticas.precio }}¢</span>
-                <span class="item-stat" :class="[ equipado && atributosBase.atqJugador + equipado.estadisticas.atq >= atributosBase.atqJugador + objeto.estadisticas.atq ? 'r1' : 'r2' ]">a: {{ formatoNumero(objeto.estadisticas.atq) }}</span>
-                <!-- <span class="item-stat" :class="[ equipado && atributosBase.defJugador + equipado.estadisticas.def >= atributosBase.defJugador + objeto.estadisticas.def ? 'r1' : 'r2' ]">d: {{ formatoNumero(objeto.estadisticas.def) }}</span> -->
-                <span class="item-stat" :class="[ equipado && atributosBase.vidaJugador + equipado.estadisticas.vida >= atributosBase.vidaJugador + objeto.estadisticas.vida ? 'r1' : 'r2' ]">v: {{ formatoNumero(objeto.estadisticas.vida) }}</span>
-              </small>
-              {{ objeto.nombre }}
-            </div>
-          </div>
-        </div>
-        <div class="espaciado">
-          <button @click="alternarTienda()">Cerrar tienda</button>
-        </div>
-      </div>
-      <div class="tienda-fondo"></div>
-    </div>
+    <Tienda></Tienda>
     <div class="container">
       <div class="mitad">
         <Jugador></Jugador>
       </div>
       <div class="mitad">
-        <div class="log-container">
-          <h2>Log</h2>
-          <p v-for="p in historico" class="linea" :class="p.clase">{{ p.fecha }}: {{ p.texto }}</p>
-        </div>
+        <Log></Log>
       </div>
     </div>
 
     <div class="container">
       <div class="mitad">
-        <h2 v-if="equipado">Equipado</h2>
-        <div v-if="equipado" class="item" :class="clasesDeObjeto(equipado)" :title="tituloDeObjeto(equipado, true)">
-          <button @click="equipado = null">Desequipar</button>
-          <small>
-            <span class="item-stat" :class="[ equipado && atributosBase.atqJugador + equipado.estadisticas.atq >= atributosBase.atqJugador + equipado.estadisticas.atq ? 'r1' : 'r2' ]">a: {{ formatoNumero(equipado.estadisticas.atq) }}</span>
-            <span class="item-stat" :class="[ equipado && atributosBase.defJugador + equipado.estadisticas.def >= atributosBase.defJugador + equipado.estadisticas.def ? 'r1' : 'r2' ]">d: {{ formatoNumero(equipado.estadisticas.def) }}</span>
-            <span class="item-stat" :class="[ equipado && atributosBase.vidaJugador + equipado.estadisticas.vida >= atributosBase.vidaJugador + equipado.estadisticas.vida ? 'r1' : 'r2' ]">
-              v: {{ formatoNumero(equipado.estadisticas.vida) }}
-              <span class="contenedor-vida-item">
-                <span class="item-porcentage-vida" :style="`width: ${porcentageVidaObjetoEquipado}%;`"></span>
-              </span>
-            </span>
-          </small>
-          {{ equipado.nombre }} (p: {{ equipado.estadisticas.precio }}¢)
-        </div>
-        <h2>Bolsa de pociones <small>{{ bolsaPociones.length }}/{{ capacidadMaximaBolsaPociones }}</small></h2>
-        <div class="pocion" :class="pocion.campo" v-for="pocion of bolsaPociones">
-          <button @click="usarPocion(pocion)">Usar</button>
-          {{ pocion.nombre }} {{ pocion.permanente ? 'permanente' : '' }} (+{{ formatoNumero(pocion.incremento) }})
-        </div>
-        <h2>Inventario <small>{{inventario.length}}/{{capacidadMaxima}}</small></h2>
-        <div class="item" v-for="objeto of inventario" :class="clasesDeObjeto(objeto)" :title="tituloDeObjeto(objeto, true)">
-          <button @click="equipar(objeto)" :disabled="estaEquipado(objeto)">Equipar</button>
-          <button @click="venderObjeto(objeto)":disabled="estaEquipado(objeto)">Vender</button>
-          <small>
-            <span class="item-stat" :class="[ equipado && atributosBase.atqJugador + equipado.estadisticas.atq >= atributosBase.atqJugador + objeto.estadisticas.atq ? 'r1' : 'r2' ]">a: {{ formatoNumero(objeto.estadisticas.atq) }}</span>
-            <!-- <span class="item-stat" :class="[ equipado && atributosBase.defJugador + equipado.estadisticas.def >= atributosBase.defJugador + objeto.estadisticas.def ? 'r1' : 'r2' ]">d: {{ formatoNumero(objeto.estadisticas.def) }}</span> -->
-            <span class="item-stat" :class="[ equipado && atributosBase.vidaJugador + equipado.estadisticas.vida >= atributosBase.vidaJugador + objeto.estadisticas.vida ? 'r1' : 'r2' ]">v: {{ formatoNumero(objeto.estadisticas.vida) }}</span>
-          </small>
-          {{ objeto.nombre }} (p: {{ objeto.estadisticas.precio }}¢)
-        </div>
+        <Inventario></Inventario>
       </div>
 
       <div class="mitad">
-        <template v-if="monstruoActivo">
-          <h2>Enemigo</h2>
-          <p v-if="monstruoActivo && monstruoActivo.vida > 0"><button @click="golpearMonstruoActivo()" :disabled="monstruoActivo.atacando">¡Atacar enemigo!</button></p>
-          <p v-else><button @click="generaMonstruoActivo()">¡Nuevo enemigo!</button></p>
-          <Monstruo :datos="monstruoActivo"></Monstruo>
-        </template>
+        <Monstruo :datos="monstruoActivo"></Monstruo>
         <div v-if="dropActual.length">
           <h2>Recompensas</h2>
           <strong>Créditos:</strong> {{ formatoNumero(monstruoActivo.creditos) }}¢
@@ -115,13 +43,16 @@
 <script>
   import Monstruo from './components/Monstruo.vue'
   import Jugador from './components/Jugador.vue'
+  import Tienda from './components/Tienda.vue'
+  import Log from './components/Log.vue'
+  import Inventario from './components/Inventario.vue'
   import mx from '@/mixins'
   import { mapState } from 'vuex'
 
   export default {
     name: 'app',
     mixins: [ mx ],
-    components: { Monstruo, Jugador },
+    components: { Monstruo, Jugador, Tienda, Log, Inventario },
     computed: {
       ...mapState([
         'tienda',
@@ -141,13 +72,7 @@
         'nivelMax',
         'estadisticas',
         'historico',
-      ]),
-      porcentageVidaEnemigo(){
-        return Math.round(this.monstruoActivo.vida * 100 / this.monstruoActivo.vidaInicial)
-      },
-      porcentageVidaObjetoEquipado(){
-        return Math.round(this.equipado.estadisticas.vida * 100 / this.equipado.estadisticas.vidaInicial)
-      }
+      ])
     },
     mounted(){
       this.generaMonstruoActivo()
@@ -258,24 +183,6 @@
     -webkit-transition: all .5s;
     -o-transition: all .5s;
     transition: all .5s;
-  }
-  .log-container {
-    overflow: auto;
-  }
-
-  .log-container .linea {
-    margin: 2px;
-    text-align: left;
-  }
-
-  .critico {
-    color: orangered;
-  }
-  .normal {
-    color: #333;
-  }
-  .info {
-    color: steelblue;
   }
 
   .contenedor-vida-item {
