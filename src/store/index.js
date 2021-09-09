@@ -158,6 +158,9 @@ export default new Vuex.Store({
     agregarAHistorico(state, obj){
       state.historico.unshift(obj)
       if(state.historico.length > 5) state.historico.length = 5
+    },
+    establecerIncrementoObjetos(state, incremento){
+      state.incrementoObjetos = incremento
     }
   }
 })

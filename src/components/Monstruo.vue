@@ -1,13 +1,13 @@
 <template>
-  <div class="monstruo" v-if="datos">
+  <div class="monstruo" v-if="datosMonstruo">
     <h2>Enemigo</h2>
-    <p v-if="datos && datos.vida > 0"><button @click="golpearMonstruoActivo()" :disabled="datos.atacando">¡Atacar enemigo!</button></p>
+    <p v-if="datosMonstruo && datosMonstruo.vida > 0"><button @click="golpearMonstruoActivo()" :disabled="datosMonstruo.atacando">¡Atacar enemigo!</button></p>
     <p v-else><button @click="generaMonstruoActivo()">¡Nuevo enemigo!</button></p>
     <div class="progress-bar-container vida">
       <div class="progress-bar" :style="'width: ' + porcentageVidaEnemigo + '%'"></div>
     </div>
-    <p>Vida: {{ formatoNumero(datos.vida) }} | Ataque: {{ formatoNumero(datos.atq) }}<!--  | Defensa: {{ datos.def }} --></p>
-    <p v-if="datos.esJefe"><small style="color: red;"><strong>¡Es un jefe poderoso!</strong></small></p>
+    <p>Vida: {{ formatoNumero(datosMonstruo.vida) }} | Ataque: {{ formatoNumero(datosMonstruo.atq) }}<!--  | Defensa: {{ datosMonstruo.def }} --></p>
+    <p v-if="datosMonstruo.esJefe"><small style="color: red;"><strong>¡Es un jefe poderoso!</strong></small></p>
   </div>
 </template>
 
@@ -17,7 +17,7 @@
 
   export default {
     name: 'Monstruo',
-    props: [ 'datos' ],
+    props: [ 'datosMonstruo' ],
     mixins: [ mx ],
     computed: {
       ...mapState([
@@ -27,10 +27,12 @@
         'totalDrops',
         'nivelMax',
         'estadisticas',
-        'inventario'
+        'inventario',
+        'datos',
+        'equipado'
       ]),
       porcentageVidaEnemigo(){
-        return Math.round(this.datos.vida * 100 / this.datos.vidaInicial)
+        return Math.round(this.datosMonstruo.vida * 100 / this.datosMonstruo.vidaInicial)
       }
     }
   }

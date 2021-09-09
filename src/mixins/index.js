@@ -220,10 +220,7 @@ export default {
         cantidad: 1.1
       })
 
-      this.$store.commit('incrementarAtributoBase', {
-        atributo: 'incrementoObjetos',
-        cantidad: this.totalDrops / 15
-      })
+      this.$store.commit('establecerIncrementoObjetos', this.totalDrops / 15)
     },
     total(campo){
       return this.atributos[campo] + this.atributosBase[`${campo}Pociones`] + (this.equipado ? this.equipado.estadisticas[campo] : 0)
@@ -269,14 +266,17 @@ export default {
       this.$store.commit('vaciarDropActual')
       this.$store.commit('aumentarCantidadDrops')
 
-      let objetosPorDrop = this.random(1, 5)
+      let objetosPorDrop = this.random(1, 3)
       if(this.monstruoActivo.esJefe){
-        objetosPorDrop = 5
+        objetosPorDrop = 6
       }
       for(let i = 0; i < objetosPorDrop; i++) this.nuevoObjeto()
 
       if(this.random(1, 10) > 8){
-        const nPociones = this.random(1, 2)
+        const nPociones = 1;
+        if(this.monstruoActivo.esJefe){
+          nPociones = this.random(1, 2);
+        }
         for(let p = 0; p < nPociones; p++){
           this.$store.commit('agregarPocionADrop', this.generaPocion())
         }
@@ -379,11 +379,13 @@ export default {
     generaPocion(){
       let tipos = [
         {
+          'id': this.random(1000, 9000) + Date.now().toFixed(0),
           'nombre': 'Poción de vida',
           'campo': 'vida',
           'incremento': 1
         },
         {
+          'id': this.random(1000, 9000) + Date.now().toFixed(0),
           'nombre': 'Poción de ataque',
           'campo': 'atq',
           'incremento': 1
@@ -393,12 +395,14 @@ export default {
       if(this.random(1, 100) > 95){ // 5%
         tipos = [
           {
+            'id': this.random(1000, 9000) + Date.now().toFixed(0),
             'nombre': 'Bolsa de pociones',
             'campo': 'capacidadMaximaBolsaPociones',
             'usable': true,
             'incremento': 1
           },
           {
+            'id': this.random(1000, 9000) + Date.now().toFixed(0),
             'nombre': 'Inventario',
             'campo': 'capacidadMaxima',
             'usable': true,
@@ -420,7 +424,7 @@ export default {
       pocion.porcentaje = this.random(25, 75)
       const totalActual = this.atributosBase[`${pocion.campo}Jugador`] + this.atributosBase[`${pocion.campo}Pociones`] + (this.equipado ? this.equipado.estadisticas[pocion.campo] : 0)
       pocion.incremento = Math.ceil((totalActual * pocion.porcentaje) / 100)
-      pocion.permanente = this.random(1, 15) > 13
+      pocion.permanente = this.monstruoActivo.esJefe ? this.random(1, 15) > 13 : this.random(1, 15) === 15
       pocion.precio = Math.ceil(pocion.incremento * (this.atributosBase.incrementoObjetos + 1))
       if(pocion.permanente){
         pocion.precio *= 3

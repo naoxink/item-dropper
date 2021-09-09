@@ -6,7 +6,8 @@
         <Jugador></Jugador>
       </div>
       <div class="mitad">
-        <Log></Log>
+        <Monstruo :datosMonstruo="monstruoActivo"></Monstruo>
+        <Drop></Drop>
       </div>
     </div>
 
@@ -16,24 +17,7 @@
       </div>
 
       <div class="mitad">
-        <Monstruo :datos="monstruoActivo"></Monstruo>
-        <div v-if="dropActual.length">
-          <h2>Recompensas</h2>
-          <strong>Créditos:</strong> {{ formatoNumero(monstruoActivo.creditos) }}¢
-          <div v-for="objeto of dropActual" class="item" :class="clasesDeObjeto(objeto)" :title="tituloDeObjeto(objeto)">
-            <button @click="agregarAlInventario(objeto)">Recoger</button>
-            <small>
-              <span class="item-stat" :class="[ equipado && atributosBase.atqJugador + equipado.estadisticas.atq >= atributosBase.atqJugador + objeto.estadisticas.atq ? 'r1' : 'r2' ]">a: {{ formatoNumero(objeto.estadisticas.atq) }}</span>
-              <!-- <span class="item-stat" :class="[ equipado && atributosBase.defJugador + equipado.estadisticas.def >= atributosBase.defJugador + objeto.estadisticas.def ? 'r1' : 'r2' ]">d: {{ formatoNumero(objeto.estadisticas.def) }}</span> -->
-              <span class="item-stat" :class="[ equipado && atributosBase.vidaJugador + equipado.estadisticas.vida >= atributosBase.vidaJugador + objeto.estadisticas.vida ? 'r1' : 'r2' ]">v: {{ formatoNumero(objeto.estadisticas.vida) }}</span>
-            </small>
-            {{ objeto.nombre }} ({{ objeto.estadisticas.precio }}¢)
-          </div>
-        </div>
-        <div v-for="pocion of dropPociones" class="pocion" :class="pocion.campo">
-          <button @click="agregarAlInventario(pocion)">Recoger</button>
-          {{ pocion.nombre }} {{ pocion.permanente ? 'permanente' : '' }} (+{{ formatoNumero(pocion.incremento) }})
-        </div>
+        <Log></Log>
       </div>
     </div>
 
@@ -46,13 +30,14 @@
   import Tienda from './components/Tienda.vue'
   import Log from './components/Log.vue'
   import Inventario from './components/Inventario.vue'
+  import Drop from './components/Drop.vue'
   import mx from '@/mixins'
   import { mapState } from 'vuex'
 
   export default {
     name: 'app',
     mixins: [ mx ],
-    components: { Monstruo, Jugador, Tienda, Log, Inventario },
+    components: { Monstruo, Jugador, Tienda, Log, Inventario, Drop },
     computed: {
       ...mapState([
         'tienda',
@@ -118,7 +103,8 @@
     margin: 10px;
   }
   .container {
-    width: 1200px;
+    /*width: 1200px;*/
+    width: 100%;
     margin: 10px auto;
     overflow: hidden;
     padding: 10px;
