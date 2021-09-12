@@ -16,16 +16,7 @@
         </div>
         <div>
           <h2>Objetos</h2>
-          <div class="item" :class="objeto.clase" v-for="objeto of tienda.objetos">
-            <button @click="comprarObjeto(objeto)" :disabled="objeto.estadisticas.precio > creditoTotal">Comprar</button>
-            <small>
-              <span class="item-stat unico">Precio: {{ objeto.estadisticas.precio }}¢</span>
-              <span class="item-stat" :class="[ equipado && atributosBase.atqJugador + equipado.estadisticas.atq >= atributosBase.atqJugador + objeto.estadisticas.atq ? 'r1' : 'r2' ]">a: {{ formatoNumero(objeto.estadisticas.atq) }}</span>
-              <!-- <span class="item-stat" :class="[ equipado && atributosBase.defJugador + equipado.estadisticas.def >= atributosBase.defJugador + objeto.estadisticas.def ? 'r1' : 'r2' ]">d: {{ formatoNumero(objeto.estadisticas.def) }}</span> -->
-              <span class="item-stat" :class="[ equipado && atributosBase.vidaJugador + equipado.estadisticas.vida >= atributosBase.vidaJugador + objeto.estadisticas.vida ? 'r1' : 'r2' ]">v: {{ formatoNumero(objeto.estadisticas.vida) }}</span>
-            </small>
-            {{ objeto.nombre }}
-          </div>
+          <Objeto v-for="objeto of tienda.objetos" :objeto="objeto" :enTienda="true"></Objeto>
         </div>
       </div>
       <div class="espaciado">
@@ -39,9 +30,12 @@
 <script>
   import mx from '@/mixins'
   import { mapState } from 'vuex'
+  import Pocion from '@/components/Pocion.vue'
+  import Objeto from '@/components/Objeto.vue'
 
   export default {
     name: 'Tienda',
+    components: { Pocion, Objeto },
     mixins: [ mx ],
     computed: {
       ...mapState([

@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" @keyup.esc="alternarTienda">
     <Tienda></Tienda>
     <div class="container">
       <div class="mitad">

@@ -20,17 +20,7 @@
     <Pocion v-for="pocion of bolsaPociones" :pocion="pocion" :key="`bp-${pocion.id}`" accion="Usar" :onclick="usarPocion"></Pocion>
 
     <h2>Inventario <small>{{inventario.length}}/{{capacidadMaxima}}</small></h2>
-    <div class="item" v-for="objeto of inventario" :class="clasesDeObjeto(objeto)" :title="tituloDeObjeto(objeto, true)">
-      <button @click="equipar(objeto)" :disabled="estaEquipado(objeto)">Equipar</button>
-      <button @click="venderObjeto(objeto)":disabled="estaEquipado(objeto)">Vender</button>
-      <small>
-        <span class="item-stat" :class="[ equipado && atributosBase.atqJugador + equipado.estadisticas.atq >= atributosBase.atqJugador + objeto.estadisticas.atq ? 'r1' : 'r2' ]">a: {{ formatoNumero(objeto.estadisticas.atq) }}</span>
-        <!-- <span class="item-stat" :class="[ equipado && atributosBase.defJugador + equipado.estadisticas.def >= atributosBase.defJugador + objeto.estadisticas.def ? 'r1' : 'r2' ]">d: {{ formatoNumero(objeto.estadisticas.def) }}</span> -->
-        <span class="item-stat" :class="[ equipado && atributosBase.vidaJugador + equipado.estadisticas.vida >= atributosBase.vidaJugador + objeto.estadisticas.vida ? 'r1' : 'r2' ]">v: {{ formatoNumero(objeto.estadisticas.vida) }}</span>
-      </small>
-      {{ objeto.nombre }} (p: {{ objeto.estadisticas.precio }}¢)
-    </div>
-
+    <Objeto v-for="objeto of inventario" :objeto="objeto" :enInventario="true"></Objeto>
   </div>
 </template>
 
@@ -38,9 +28,10 @@
   import { mapState } from 'vuex'
   import mx from '@/mixins'
   import Pocion from '@/components/Pocion.vue'
+  import Objeto from '@/components/Objeto.vue'
   export default {
     name: 'Inventario',
-    components: { Pocion },
+    components: { Pocion, Objeto },
     mixins: [ mx ],
     computed: {
       ...mapState([

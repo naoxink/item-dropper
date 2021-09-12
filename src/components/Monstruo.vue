@@ -6,7 +6,7 @@
     <div class="progress-bar-container vida">
       <div class="progress-bar" :style="'width: ' + porcentageVidaEnemigo + '%'"></div>
     </div>
-    <p>Vida: {{ formatoNumero(datosMonstruo.vida) }} | Ataque: {{ formatoNumero(datosMonstruo.atq) }}<!--  | Defensa: {{ datosMonstruo.def }} --></p>
+    <p>Vida: {{ formatoNumero(datosMonstruo.vida) }} | Ataque: {{ formatoNumero(datosMonstruo.atq) }} | Defensa: {{ datosMonstruo.def }}</p>
     <p v-if="datosMonstruo.esJefe"><small style="color: red;"><strong>¡Es un jefe poderoso!</strong></small></p>
   </div>
 </template>

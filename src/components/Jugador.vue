@@ -12,7 +12,7 @@
     <p>
       <strong>Vida</strong>: {{ (total('vida')) }}
       | <strong>Ataque</strong>: {{ (total('atq')) }}
-      <!-- | <strong>Defensa</strong>: {{ total('def') }} -->
+      | <strong>Defensa</strong>: {{ total('def') }}
     </p>
     <div class="progress-bar-container vida">
       <div class="progress-bar" :style="'width: ' + porcentageVidaJugador + '%'"></div>

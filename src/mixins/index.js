@@ -52,7 +52,7 @@ export default {
     generaMonstruoActivo(){
       this.$store.commit('vaciarDropActual')
 
-      const esJefe = this.random(1, 10) === 5
+      const esJefe = (this.totalDrops + 1) % 15 === 0
       const monstruo = {
         vidaInicial: this.atributosBase.vidaEnemigo * (esJefe ? 2 : 1),
         vida: this.atributosBase.vidaEnemigo * (esJefe ? 2 : 1),
@@ -65,6 +65,15 @@ export default {
       this.$store.commit('establecerMonstruoActivo', monstruo)
     },
     golpearMonstruoActivo(){
+      // Fallo
+      if(this.random(1, 25) == 1){
+        this.log('¡Has fallado el ataque!', 'normal')
+        // if(this.equipado && this.equipado.tieneAutoataque){
+        //   this.golpearMonstruoActivo()
+        // }
+        return true
+      }
+
       let totalAtaque = this.total('atq')
       if(this.random(1, 10) <= 2){
         totalAtaque = Math.round(totalAtaque * 1.5)
@@ -72,7 +81,7 @@ export default {
       }
       let probDefensa = this.random(0, this.monstruoActivo.def)
        // El enemigo defiende
-      if(false && probDefensa > this.monstruoActivo.def / 5){
+      if(probDefensa > this.monstruoActivo.def / 100){
         let porcentageDefensa = (this.random(0, this.monstruoActivo.def) / 100) + 1
         let ataqueAbsorvido = Math.round(totalAtaque * porcentageDefensa)
         let restoAtaque = this.monstruoActivo.def - totalAtaque
@@ -96,7 +105,7 @@ export default {
           cantidad: restoAtaque + restoAtaqueNoAbsorvido
         })
 
-        log(`total daño: ${this.total('atq')} | Absorvido: ${ataqueAbsorvido} | Resto no absorvido: ${restoAtaqueNoAbsorvido} | Resto ataque: ${restoAtaque}`, 'info')
+        this.log(`El enemigo ha absorvido ${ataqueAbsorvido} de daño`, 'info')
 
       }else{
         this.$store.commit('decrementarAtributoMonstruo', {
@@ -116,6 +125,10 @@ export default {
         if(this.totalDrops % 5 === 0){
           this.rellenarTienda()
         }
+        // if(this.equipado && this.equipado.tieneAutoataque){
+        //   this.generaMonstruoActivo()
+        //   this.golpearMonstruoActivo()
+        // }
       }else{
         this.monstruoActivoAtaque()
       }
@@ -126,6 +139,7 @@ export default {
       this.atributos.def = this.atributosBase.defJugador
       if(this.equipado){
         this.equipado.estadisticas.vida = this.equipado.estadisticas.vidaInicial
+        this.equipado.estadisticas.def = this.equipado.estadisticas.defInicial
       }
       this.inventario.map(item => {
         item.estadisticas.vida = item.estadisticas.vidaInicial
@@ -152,11 +166,15 @@ export default {
     golpeaJugador(){
       // Esquivado
       if(this.random(1, 10) <= 2){
-        return this.log('¡Has esquivado el ataque!', 'normal')
+        this.log('¡Has esquivado el ataque!', 'normal')
+        // if(this.equipado && this.equipado.tieneAutoataque){
+        //   this.golpearMonstruoActivo()
+        // }
+        return true
       }
       // Defensa
       let probDefensa = this.random(0, this.total('def'))
-      if(false && probDefensa > this.total('def') / 5){
+      if(probDefensa > this.total('def') / 100){
         let porcentageDefensa = (this.random(1, this.total('def')) / 100)
         let ataqueAbsorvido = Math.ceil(this.monstruoActivo.atq * porcentageDefensa)
         let restoAtaque = this.total('def') - this.monstruoActivo.atq
@@ -169,7 +187,9 @@ export default {
           // y el resto se le resta a la vida
           this.reducirAtributo('def', this.total('def'))
           this.reducirAtributo('vida', restoAtaque)
+          ataqueAbsorvido = this.total('def')
         }
+        this.log(`¡Has absorvido ${ataqueAbsorvido} con tu defensa!`)
       }else{
         this.reducirAtributo('vida', this.monstruoActivo.atq)
       }
@@ -178,6 +198,9 @@ export default {
         this.establecerAtributos()
         this.generaMonstruoActivo()
       }
+      // if(this.equipado && this.equipado.tieneAutoataque){
+      //   this.golpearMonstruoActivo()
+      // }
     },
     monstruoActivoAtaque(){
       const _v = this
@@ -273,7 +296,7 @@ export default {
       for(let i = 0; i < objetosPorDrop; i++) this.nuevoObjeto()
 
       if(this.random(1, 10) > 8){
-        const nPociones = 1;
+        let nPociones = 1;
         if(this.monstruoActivo.esJefe){
           nPociones = this.random(1, 2);
         }
@@ -308,28 +331,35 @@ export default {
       let nivel = this.random(nivelDesde, nivelDesde * multiplicador + 1)
       nivel = nivel > this.nivelMax ? this.nivelMax : nivel
 
+      let tieneAutoataque = false
       nombre += ` [nivel ${nivel}]`
       let clase = 'r1'
       if(nivel >= this.nivelMax / 5){
         clase = 'r2'
+        tieneAutoataque = this.random(1, 100) >= 90; // 10%
       }
       if(nivel >= this.nivelMax / 3){
         clase = 'r3'
+        tieneAutoataque = this.random(1, 100) >= 75; // 25%
       }
       if(nivel >= this.nivelMax / 2){
         clase = 'r4'
+        tieneAutoataque = this.random(1, 100) >= 50; // 50%
       }
       if(nivel === this.nivelMax){
         clase = 'r5'
+        tieneAutoataque = true;
       }
       this.estadisticas[clase]++
       if(unico) this.estadisticas.unico++
+
       const objeto = {
         nombre,
         nivel,
         unico,
         clase,
         id,
+        // tieneAutoataque: tieneAutoataque,
         'drop': this.totalDrops
       }
       objeto.estadisticas = this.obtenerEstadisticas(objeto)
@@ -370,11 +400,16 @@ export default {
         def = Math.round(def * this.random(120, 130) / 100)
       }
 
-      // Temporalmente desactivada
-      def = 0
       precio = Math.round((atq + vida + def) / (objeto.unico ? 1 : 2))
 
-      return { atq, def, vida, 'vidaInicial': vida, precio }
+      return {
+        atq,
+        def,
+        vida,
+        vidaInicial: vida,
+        defInicial: def,
+        precio
+      }
     },
     generaPocion(){
       let tipos = [

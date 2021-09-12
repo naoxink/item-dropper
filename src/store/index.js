@@ -11,15 +11,16 @@ export default new Vuex.Store({
     atributos: {
       vida: 6,
       atq: 1,
-      def: 0
+      def: 1
     },
     atributosBase: {
       vidaJugador: 6,
       atqJugador: 1,
-      defJugador: 0,
+      defJugador: 1,
 
       atqPociones: 0,
       vidaPociones: 0,
+      defPociones: 0,
 
       vidaEnemigo: 5,
       atqEnemigo: 1,
