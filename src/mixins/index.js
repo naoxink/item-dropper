@@ -104,7 +104,6 @@ export default {
           estadistica: 'vida',
           cantidad: restoAtaque + restoAtaqueNoAbsorvido
         })
-        console.log(restoAtaque, restoAtaqueNoAbsorvido)
 
         this.log(`El enemigo ha absorvido ${ataqueAbsorvido} de daño`, 'info')
 
