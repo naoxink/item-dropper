@@ -33,6 +33,8 @@
   import Drop from './components/Drop.vue'
   import mx from '@/mixins'
   import { mapState } from 'vuex'
+  import { Personaje } from './classes/Personaje'
+  import { EstadisticasPersonaje } from './classes/EstadisticasPersonaje'
 
   export default {
     name: 'app',
@@ -57,9 +59,15 @@
         'nivelMax',
         'estadisticas',
         'historico',
+        'jugador',
+        'enemigo',
       ])
     },
     mounted(){
+      // NUEVO
+      const jugador = new Personaje('Jugador', new EstadisticasPersonaje(this.atributos));
+      this.$store.commit('establecerJugador', jugador)
+      // !NUEVO
       this.generaMonstruoActivo()
       this.rellenarTienda()
     }
@@ -78,7 +86,7 @@
   }
   .tienda {
     position: fixed;
-    top: 15%;
+    top: 5%;
     width: 750px;
     background-color: #fff;
     border: 1px solid rgba(0, 0, 0, .2);
@@ -103,7 +111,7 @@
     margin: 10px;
   }
   .container {
-    /*width: 1200px;*/
+    width: 1000px;
     width: 100%;
     margin: 10px auto;
     overflow: hidden;
@@ -170,7 +178,13 @@
     -o-transition: all .5s;
     transition: all .5s;
   }
-
+  .progress-bar-container.vida .progress-bar-extra {
+    height: 5px;
+    background-color: lightgreen;
+    -webkit-transition: all .5s;
+    -o-transition: all .5s;
+    transition: all .5s;
+  }
   .contenedor-vida-item {
     position: absolute;
     bottom: 0;

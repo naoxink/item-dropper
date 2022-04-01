@@ -1,3 +1,9 @@
+import { Enemigo } from '../classes/Enemigo'
+import { Arma } from '../classes/Arma'
+import { Pocion } from '../classes/Pocion'
+import { EstadisticasPersonaje } from '../classes/EstadisticasPersonaje'
+import { EstadisticasArma } from '../classes/EstadisticasArma'
+
 export default {
   methods: {
     alternarTienda(){
@@ -7,9 +13,9 @@ export default {
       this.$store.commit('vaciarTienda')
 
       let objetosNuevos = [
-        this.generaObjeto(),
-        this.generaObjeto(),
-        this.generaObjeto()
+        this.generaObjeto(true),
+        this.generaObjeto(true),
+        this.generaObjeto(true)
       ]
 
       objetosNuevos = objetosNuevos.sort((a, b) => {
@@ -31,11 +37,19 @@ export default {
       this.log('¡Tienda renovada!', 'info')
     },
     venderObjeto(objeto){
-      this.$store.commit('incrementarCreditoTotal', objeto.estadisticas.precio)
+      this.$store.commit('incrementarCreditoTotal', objeto.precio)
       this.desechar(objeto)
     },
     formatoNumero(n){
-      return n.toLocaleString('es-ES')
+      let str = n.toFixed(2)
+      if(n > 1000000000000){
+        str = (n / 1000000000000).toFixed(2) + 'b'
+      }else if(n > 1000000){
+        str = (n / 1000000).toFixed(2) + 'm'
+      }else if(n > 1000){
+        str = (n / 1000).toFixed(2) + 'k'
+      }
+      return str.replace('.00', '').replace('.', ',')
     },
     timestamp(){
       const d = new Date()
@@ -51,26 +65,48 @@ export default {
     },
     generaMonstruoActivo(){
       this.$store.commit('vaciarDropActual')
+      this.$store.commit('limpiaHistorico')
 
       const esJefe = (this.totalDrops + 1) % 15 === 0
+      const vidaEnemigo = Math.round(this.atributosBase.vidaJugadorFloat * 0.85)
+      const ataqueEnemigo = Math.round(this.atributosBase.atqJugadorFloat * 0.85)
+      const defensaEnemigo = Math.round(this.atributosBase.defJugadorFloat * 0.85)
+
       const monstruo = {
-        vidaInicial: this.atributosBase.vidaEnemigo * (esJefe ? 2 : 1),
-        vida: this.atributosBase.vidaEnemigo * (esJefe ? 2 : 1),
-        atq: this.atributosBase.atqEnemigo,
-        def: this.atributosBase.atqEnemigo * (esJefe ? 2 : 1),
+        vidaInicial: esJefe ? Math.round(this.total('vida') * 1.15) : vidaEnemigo,
+        vida: esJefe ? Math.round(this.total('vida') * 1.15) : vidaEnemigo,
+        atq: esJefe ? Math.round(this.total('atq') * 1.15) : ataqueEnemigo,
+        def: esJefe ? Math.round(this.total('def') * 1.15) : defensaEnemigo,
         atacando: false,
         esJefe,
-        creditos: Math.ceil(this.atributosBase.vidaEnemigo / 3)
       }
+      monstruo.creditos = Math.round(monstruo.vidaInicial / (this.totalDrops + 1)) + 1
+      if(monstruo.esJefe){
+        monstruo.creditos *= 1.25
+      }
+
+      // NUEVO
+      const monstruoClase = new Enemigo('Enemigo principal', {
+        estadisticas: new EstadisticasPersonaje({
+          atq: monstruo.atq,
+          def: monstruo.def,
+          vida: monstruo.vida
+        }),
+        esJefe: monstruo.esJefe,
+        creditos: monstruo.creditos
+      })
+      this.$store.commit('establecerEnemigo', monstruoClase)
+      // !NUEVO
+
       this.$store.commit('establecerMonstruoActivo', monstruo)
     },
     golpearMonstruoActivo(){
       // Fallo
       if(this.random(1, 25) == 1){
         this.log('¡Has fallado el ataque!', 'normal')
-        // if(this.equipado && this.equipado.tieneAutoataque){
-        //   this.golpearMonstruoActivo()
-        // }
+        if(this.equipado && this.equipado.tieneAutoataque){
+          this.golpearMonstruoActivo()
+        }
         return true
       }
 
@@ -82,11 +118,10 @@ export default {
       let probDefensa = this.random(0, this.monstruoActivo.def)
        // El enemigo defiende
       if(probDefensa > this.monstruoActivo.def / 100){
-        let porcentageDefensa = (this.random(0, this.monstruoActivo.def) / 100) + 1
-        let ataqueAbsorvido = Math.round(totalAtaque * porcentageDefensa)
-        let restoAtaque = this.monstruoActivo.def - totalAtaque
+        let porcentageDefensa = (this.random(0, this.monstruoActivo.def)) + 1
+        let ataqueAbsorvido = Math.ceil(totalAtaque * (porcentageDefensa / 100))
+        let restoAtaque = totalAtaque - ataqueAbsorvido
         let restoAtaqueNoAbsorvido = 0
-
         this.$store.commit('decrementarAtributoMonstruo', {
           estadistica: 'def',
           cantidad: ataqueAbsorvido
@@ -105,7 +140,7 @@ export default {
           cantidad: restoAtaque + restoAtaqueNoAbsorvido
         })
 
-        this.log(`El enemigo ha absorvido ${ataqueAbsorvido} de daño`, 'info')
+        this.log(`El enemigo ha absorvido ${ataqueAbsorvido} de daño y ha recibido ${restoAtaque + restoAtaqueNoAbsorvido} de daño`, 'info')
 
       }else{
         this.$store.commit('decrementarAtributoMonstruo', {
@@ -121,16 +156,82 @@ export default {
         this.$store.commit('incrementarCreditoTotal', this.monstruoActivo.creditos)
         this.nuevoDrop()
         this.aumentarAtributosBase()
-        this.establecerAtributos()
+        if(this.monstruoActivo.esJefe){
+          this.establecerAtributos()
+        }
         if(this.totalDrops % 5 === 0){
           this.rellenarTienda()
         }
-        // if(this.equipado && this.equipado.tieneAutoataque){
-        //   this.generaMonstruoActivo()
-        //   this.golpearMonstruoActivo()
-        // }
+        this.ejecutarAutos()
       }else{
         this.monstruoActivoAtaque()
+      }
+    },
+    ejecutarAutos(){
+      if(this.autoLoot){
+        this.ejecutarAutoLoot()
+      }
+      if(this.autoEquip){
+        this.ejecutarAutoEquip()
+      }
+      if(this.autoSell){
+        this.ejecutarAutoSell()
+      }
+    },
+    ejecutarAutoLoot(){
+      this.dropActual.forEach(item => {
+        if(this.inventario.length < this.capacidadMaxima){
+          this.agregarAlInventario(item)
+        }
+      })
+      this.dropPociones.forEach(pocion => {
+        if(this.bolsaPociones.length < this.capacidadMaximaBolsaPociones){
+          this.agregarAlInventario(pocion)
+        }
+      })
+    },
+    ejecutarAutoEquip(){
+      let itemEquipado = null
+      this.inventario.forEach(item => {
+        if(!this.equipado){
+          this.equipar(item)
+          itemEquipado = item
+        }
+        if(this.equipado.id === item.id){
+          return false
+        }
+        if(item.tieneAutoataque){
+          this.equipar(item)
+          itemEquipado = item
+        }
+        if(
+          (item.estadisticas.vida > this.equipado.estadisticas.vida || item.estadisticas.atq > this.equipado.estadisticas.atq) &&
+          item.estadisticas.atq > this.equipado.estadisticas.atq
+        ){
+          this.equipar(item)
+          itemEquipado = item
+        }
+        console.log(item)
+      })
+      if(itemEquipado){
+        this.log(`Se ha auto-equipado ${itemEquipado.nombre}`, 'info')
+      }
+    },
+    ejecutarAutoSell(){
+      let totalGanado = 0
+      this.inventario.forEach(item => {
+        if(!this.equipado){
+          totalGanado += item.estadisticas.precio
+          return this.venderObjeto(item)
+        }
+        if(this.equipado.id === item.id){
+          return false
+        }
+        totalGanado += item.estadisticas.precio
+        this.venderObjeto(item)
+      })
+      if(totalGanado){
+        this.log(`Has ganado ${this.formatoNumero(totalGanado)}¢ auto-vendiendo`, 'info')
       }
     },
     establecerAtributos(){
@@ -167,17 +268,18 @@ export default {
       // Esquivado
       if(this.random(1, 10) <= 2){
         this.log('¡Has esquivado el ataque!', 'normal')
-        // if(this.equipado && this.equipado.tieneAutoataque){
-        //   this.golpearMonstruoActivo()
-        // }
+        if(this.equipado && this.equipado.tieneAutoataque){
+          this.golpearMonstruoActivo()
+        }
         return true
       }
       // Defensa
       let probDefensa = this.random(0, this.total('def'))
       if(probDefensa > this.total('def') / 100){
-        let porcentageDefensa = (this.random(1, this.total('def')) / 100)
-        let ataqueAbsorvido = Math.ceil(this.monstruoActivo.atq * porcentageDefensa)
-        let restoAtaque = this.total('def') - this.monstruoActivo.atq
+        let porcentageDefensa = (this.random(0, this.total('def'))) + 1
+        let ataqueAbsorvido = Math.ceil(this.monstruoActivo.atq * (porcentageDefensa / 100))
+        let restoAtaque = this.monstruoActivo.atq - ataqueAbsorvido
+
         // Si tiene más defensa que el ataque que defiende
         // se le resta de la defensa y listo
         if(this.total('def') >= ataqueAbsorvido){
@@ -189,18 +291,21 @@ export default {
           this.reducirAtributo('vida', restoAtaque)
           ataqueAbsorvido = this.total('def')
         }
-        this.log(`¡Has absorvido ${ataqueAbsorvido} con tu defensa!`)
+        this.log(`¡Has absorvido ${ataqueAbsorvido} con tu defensa y has recibido ${restoAtaque} de daño!`)
       }else{
         this.reducirAtributo('vida', this.monstruoActivo.atq)
       }
 
       if(this.total('vida') <= 0){
+        this.$store.commit('establederCantidadDrops', this.totalDrops > 15 ? this.totalDrops - (this.totalDrops % 15 === 0 ? 15 : this.totalDrops % 15) : 0)
         this.establecerAtributos()
         this.generaMonstruoActivo()
+        this.$store.commit('limpiaHistorico')
+        this.log('Has muerto, has perdido tus objetos pero vuelves a resucitar volviendo en el tiempo', 'critico')
       }
-      // if(this.equipado && this.equipado.tieneAutoataque){
-      //   this.golpearMonstruoActivo()
-      // }
+      if(this.equipado && this.equipado.tieneAutoataque){
+        this.golpearMonstruoActivo()
+      }
     },
     monstruoActivoAtaque(){
       const _v = this
@@ -227,26 +332,26 @@ export default {
         cantidad: 1.1
       })
 
-      this.$store.commit('incrementarAtributoBase', {
-        objetivo: 'Enemigo',
-        atributo: 'vida',
-        cantidad: 1.1
-      })
-      this.$store.commit('incrementarAtributoBase', {
-        objetivo: 'Enemigo',
-        atributo: 'atq',
-        cantidad: 1.1
-      })
-      this.$store.commit('incrementarAtributoBase', {
-        objetivo: 'Enemigo',
-        atributo: 'def',
-        cantidad: 1.1
-      })
+      // this.$store.commit('incrementarAtributoBase', {
+      //   objetivo: 'Enemigo',
+      //   atributo: 'vida',
+      //   cantidad: 1.1
+      // })
+      // this.$store.commit('incrementarAtributoBase', {
+      //   objetivo: 'Enemigo',
+      //   atributo: 'atq',
+      //   cantidad: 1.1
+      // })
+      // this.$store.commit('incrementarAtributoBase', {
+      //   objetivo: 'Enemigo',
+      //   atributo: 'def',
+      //   cantidad: 1.1
+      // })
 
       this.$store.commit('establecerIncrementoObjetos', this.totalDrops / 15)
     },
     total(campo){
-      return this.atributos[campo] + this.atributosBase[`${campo}Pociones`] + (this.equipado ? this.equipado.estadisticas[campo] : 0)
+      return this.jugador.estadisticas[campo] + this.atributosBase[`${campo}Pociones`] + (this.equipado ? this.equipado.estadisticas[campo] : 0)
     },
     tituloDeObjeto(objeto, recogido){
       // const stats = `Ataque: ${objeto.estadisticas.atq} | Defensa: ${objeto.estadisticas.def}${objeto.estadisticas.vida ? ` | Vida: ${objeto.estadisticas.vida}` : ''}`
@@ -268,7 +373,7 @@ export default {
     agregarAlInventario(objeto){
       if(objeto.tipo && objeto.tipo === 'pocion'){
         if(this.bolsaPociones.length >= this.capacidadMaximaBolsaPociones){
-          return this.log('¡No tienes hueco en la bolsa de pociones!', 'normal')
+          return this.log('¡No tienes hueco en la bolsa de pociones!', 'critico')
         }
         this.$store.commit('agregarPocionAInventario', objeto)
         return this.eliminarDelDropPociones(objeto)
@@ -309,7 +414,7 @@ export default {
       this.$store.commit('agregarObjetoADrop', this.generaObjeto())
       this.$store.commit('caparInventario')
     },
-    generaObjeto(){
+    generaObjeto(desdeTienda = false){
       let id = Date.now().toString() + Math.random(1)
       let multiplicador = this.totalDrops / 100
       let maxUnicoProb = 1000 - multiplicador
@@ -350,25 +455,32 @@ export default {
         clase = 'r5'
         tieneAutoataque = true;
       }
-      this.estadisticas[clase]++
-      if(unico) this.estadisticas.unico++
+      if(!desdeTienda){
+        this.estadisticas[clase]++
+        if(unico) this.estadisticas.unico++
+      }
 
-      const objeto = {
-        nombre,
+      const estadisticasObj = this.obtenerEstadisticas(clase, unico)
+
+      const objetoClase = new Arma(id, nombre, {
+        estadisticas: new EstadisticasArma({
+          atq: estadisticasObj.atq,
+          def: estadisticasObj.def,
+          vida: estadisticasObj.vida
+        }),
+        precio: estadisticasObj.precio,
+        autoataque: tieneAutoataque,
+        rango: clase,
         nivel,
         unico,
-        clase,
-        id,
-        // tieneAutoataque: tieneAutoataque,
-        'drop': this.totalDrops
-      }
-      objeto.estadisticas = this.obtenerEstadisticas(objeto)
-      return objeto
+        drop: this.dropActual
+      })
+      return objetoClase
     },
     random(min, max){
       return Math.floor(Math.random() * (max - min + 1) + min)
     },
-    obtenerEstadisticas(objeto){
+    obtenerEstadisticas(clase, unico){
       const valores = {
         r1: [1, 10],
         r2: [10, 25],
@@ -378,17 +490,17 @@ export default {
       }
 
       let vida = 0
-      let atq = this.random(...valores[objeto.clase])
-      let def = this.random(...valores[objeto.clase])
+      let atq = this.random(...valores[clase])
+      let def = this.random(...valores[clase])
       let precio = 0
-      // objeto.unico = true
-      if(objeto.unico){
-        atq = this.random(valores[objeto.clase][1], valores[objeto.clase][1] * 2)
-        def = this.random(valores[objeto.clase][1], valores[objeto.clase][1] * 2)
-        vida = this.random(valores[objeto.clase][1], valores[objeto.clase][1] * 2)
+      // unico = true
+      if(unico){
+        atq = this.random(valores[clase][1], valores[clase][1] * 2)
+        def = this.random(valores[clase][1], valores[clase][1] * 2)
+        vida = this.random(valores[clase][1], valores[clase][1] * 2)
       }
       if(this.random(1, 15) > 7){
-        vida = this.random(valores[objeto.clase][0] * 2, valores[objeto.clase][1] * 2)
+        vida = this.random(valores[clase][0] * 2, valores[clase][1] * 2)
       }
       vida += Math.round(vida * this.atributosBase.incrementoObjetos)
       atq += Math.round(atq * this.atributosBase.incrementoObjetos)
@@ -400,14 +512,12 @@ export default {
         def = Math.round(def * this.random(120, 130) / 100)
       }
 
-      precio = Math.round((atq + vida + def) / (objeto.unico ? 1 : 2))
+      precio = Math.round((atq + vida + def) / (unico ? 1 : 2))
 
       return {
         atq,
         def,
         vida,
-        vidaInicial: vida,
-        defInicial: def,
         precio
       }
     },
@@ -442,7 +552,14 @@ export default {
             'campo': 'capacidadMaxima',
             'usable': true,
             'incremento': 1
-          }
+          },
+          {
+            'id': this.random(1000, 9000) + Date.now().toFixed(0),
+            'nombre': 'Inventario',
+            'campo': 'capacidadMaxima',
+            'usable': true,
+            'incremento': Math.floor(this.inventario.length / 2) + 1
+          },
         ]
       }
 
@@ -453,6 +570,17 @@ export default {
       pocion.precio = Math.ceil(pocion.incremento * this.atributosBase.incrementoObjetos)
 
       if(pocion.usable){
+        // NUEVO
+        const pocionClase = new Pocion(pocion.id, pocion.nombre, {
+          campo: pocion.campo,
+          incremento: pocion.incremento,
+          usable: pocion.usable,
+          drop: this.dropActual,
+          precio: pocion.precio,
+          tipo: pocion.tipo,
+        })
+        console.log('TODO: Implementar pociones', pocionClase)
+        // !NUEVO
         return pocion
       }
 
@@ -464,6 +592,17 @@ export default {
       if(pocion.permanente){
         pocion.precio *= 3
       }
+      const pocionClase = new Pocion(pocion.id, pocion.nombre, {
+        campo: pocion.campo,
+        incremento: pocion.incremento,
+        usable: pocion.usable,
+        drop: this.dropActual,
+        precio: pocion.precio,
+        tipo: pocion.tipo,
+        permanente: pocion.permanente,
+        porcentaje: pocion.porcentaje
+      })
+      console.log('TODO: Implementar pociones', pocionClase)
       return pocion
     },
     usarPocion(pocion){

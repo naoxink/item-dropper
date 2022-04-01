@@ -1,9 +1,12 @@
 <template>
   <div class="drops">
     <div v-if="dropActual.length">
-      <h2>Recompensas</h2>
+      <h2>
+        Recompensas
+        <button v-if="recogerLootCompleto" @click="ejecutarAutoLoot">Recoger todo</button>
+      </h2>
       <strong>Créditos:</strong> {{ formatoNumero(monstruoActivo.creditos) }}¢
-      <Objeto v-for="objeto of dropActual" :objeto="objeto" :enDrop="true"></Objeto>
+      <Objeto v-for="objeto of dropActual" :objeto="objeto" :enDrop="true" :key="objeto.id"></Objeto>
     </div>
     <Pocion v-for="pocion of dropPociones" :pocion="pocion" :onclick="agregarAlInventario" accion="Recoger" :key="`dp-${pocion.id}`"></Pocion>
   </div>
@@ -27,7 +30,10 @@
         'atributosBase',
         'dropPociones',
         'inventario',
-        'bolsaPociones'
+        'bolsaPociones',
+        'capacidadMaxima',
+        'capacidadMaximaBolsaPociones',
+        'recogerLootCompleto',
       ])
     }
   }

@@ -1,11 +1,22 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import VuexPersistence from 'vuex-persist'
 import mx from '@/mixins'
+import { Personaje } from '../classes/Personaje'
+import { EstadisticasPersonaje } from '../classes/EstadisticasPersonaje'
+
+const vuexLocal = new VuexPersistence({
+  storage: window.localStorage,
+  key: 'item-droppper'
+})
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
+  // plugins: [vuexLocal.plugin],
   state: {
+    jugador: new Personaje('Jugador principal', new EstadisticasPersonaje({atq: 1, def: 0, vida: 10 })), // NUEVO
+    enemigo: null, // NUEVO
     monstruoActivo: null,
     creditoTotal: 0,
     atributos: {
@@ -44,10 +55,16 @@ export default new Vuex.Store({
     equipado: null,
     capacidadMaxima: 5,
     totalDrops: 0,
+    autoLoot: false,
+    autoSell: false,
+    autoEquip: false,
+    recogerLootCompleto: false,
+    venderInventarioCompleto: false,
+    equiparMejor: false,
     datos: {
       'p1': [ 'Vara', 'Hacha', 'Arco', 'Daga', 'Martillo', 'Báculo', 'Espada', 'Teclado', 'Cosa' ],
-      'p2': [ 'de la oscuridad', 'de la luz', 'ardiente', 'de la naturaleza', 'de los muertos', 'de Nico', 'de las leyendas', 'de noobs', 'inútil', 'guapal' ],
-      'p3': [ 'para mancos', 'que no sirve pa ná' ]
+      'p2': [ 'de la oscuridad', 'de la luz', 'ardiente', 'de la naturaleza', 'de los muertos', 'de Nico', 'de las leyendas', 'de noobs', 'inútil', 'guapal', 'mortal' ],
+      'p3': [ 'para mancos', 'que no sirve pa ná', 'del infierno' ]
     },
     nivelMax: 150,
     estadisticas: {
@@ -66,6 +83,36 @@ export default new Vuex.Store({
     }
   },
   mutations: {
+    establecerJugador(state, jugador){
+      state.jugador = jugador
+    },
+    establecerEnemigo(state, enemigo){
+      state.enemigo = enemigo
+    },
+    comprarRecogerLootCompleto(state, precio){
+      state.creditoTotal -= precio
+      state.recogerLootCompleto = true
+    },
+    comprarVenderInventarioCompleto(state, precio){
+      state.creditoTotal -= precio
+      state.venderInventarioCompleto = true
+    },
+    comprarEquiparMejor(state, precio){
+      state.creditoTotal -= precio
+      state.equiparMejor = true
+    },
+    comprarAutoLoot(state, precio){
+      state.creditoTotal -= precio
+      state.autoLoot = true;
+    },
+    comprarAutoSell(state, precio){
+      state.creditoTotal -= precio
+      state.autoSell = true;
+    },
+    comprarAutoEquip(state, precio){
+      state.creditoTotal -= precio
+      state.autoEquip = true;
+    },
     alternarTienda(state){
       state.tienda.mostrando = !state.tienda.mostrando
     },
@@ -84,7 +131,7 @@ export default new Vuex.Store({
       if(state.equipado && objeto.id === state.equipado.id) state.equipado = null
     },
     incrementarCreditoTotal(state, cantidad){
-      state.creditoTotal += +cantidad
+      state.creditoTotal += cantidad
     },
     vaciarDropActual(state){
       state.dropActual = []
@@ -101,6 +148,9 @@ export default new Vuex.Store({
     },
     aumentarCantidadDrops(state){
       state.totalDrops++
+    },
+    establederCantidadDrops(state, cantidad){
+      state.totalDrops = cantidad
     },
     agregarObjetoADrop(state, objeto){
       state.dropActual.unshift(objeto)
@@ -158,7 +208,10 @@ export default new Vuex.Store({
     },
     agregarAHistorico(state, obj){
       state.historico.unshift(obj)
-      if(state.historico.length > 5) state.historico.length = 5
+      if(state.historico.length > 10) state.historico.length = 5
+    },
+    limpiaHistorico(state){
+      state.historico = []
     },
     establecerIncrementoObjetos(state, incremento){
       state.incrementoObjetos = incremento

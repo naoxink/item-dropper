@@ -19,7 +19,10 @@
     <h2>Bolsa de pociones <small>{{ bolsaPociones.length }}/{{ capacidadMaximaBolsaPociones }}</small></h2>
     <Pocion v-for="pocion of bolsaPociones" :pocion="pocion" :key="`bp-${pocion.id}`" accion="Usar" :onclick="usarPocion"></Pocion>
 
-    <h2>Inventario <small>{{inventario.length}}/{{capacidadMaxima}}</small></h2>
+    <h2>Inventario <small>{{inventario.length}}/{{capacidadMaxima}} </small></h2>
+    <div>
+      <button v-if="equiparMejor" @click="ejecutarAutoEquip">Equipar mejor</button> <button v-if="venderInventarioCompleto" @click="ejecutarAutoSell">Vender basura</button>
+    </div>
     <Objeto v-for="objeto of inventario" :objeto="objeto" :enInventario="true"></Objeto>
   </div>
 </template>
@@ -40,7 +43,9 @@
         'equipado',
         'bolsaPociones',
         'capacidadMaxima',
-        'capacidadMaximaBolsaPociones'
+        'capacidadMaximaBolsaPociones',
+        'equiparMejor',
+        'venderInventarioCompleto'
       ]),
       porcentageVidaObjetoEquipado(){
         return Math.round(this.equipado.estadisticas.vida * 100 / this.equipado.estadisticas.vidaInicial)

@@ -1,5 +1,6 @@
 <template>
   <div class="monstruo" v-if="datosMonstruo">
+    <h2>Oleada actual: {{ (this.totalDrops + 1) % 15 === 0 ? '15' : (this.totalDrops + 1) % 15 }}/15</h2>
     <h2>Enemigo</h2>
     <p v-if="datosMonstruo && datosMonstruo.vida > 0"><button @click="golpearMonstruoActivo()" :disabled="datosMonstruo.atacando">¡Atacar enemigo!</button></p>
     <p v-else><button @click="generaMonstruoActivo()">¡Nuevo enemigo!</button></p>
@@ -28,8 +29,16 @@
         'nivelMax',
         'estadisticas',
         'inventario',
+        'bolsaPociones',
         'datos',
-        'equipado'
+        'equipado',
+        'autoLoot',
+        'autoEquip',
+        'autoSell',
+        'dropActual',
+        'dropPociones',
+        'capacidadMaxima',
+        'capacidadMaximaBolsaPociones',
       ]),
       porcentageVidaEnemigo(){
         return Math.round(this.datosMonstruo.vida * 100 / this.datosMonstruo.vidaInicial)

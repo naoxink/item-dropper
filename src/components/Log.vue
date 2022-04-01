@@ -35,4 +35,7 @@
   .info {
     color: steelblue;
   }
+  .dev {
+    color: purple;
+  }
 </style>
