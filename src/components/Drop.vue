@@ -5,7 +5,7 @@
         Recompensas
         <button v-if="recogerLootCompleto" @click="ejecutarAutoLoot">Recoger todo</button>
       </h2>
-      <strong>Créditos:</strong> {{ formatoNumero(monstruoActivo.creditos) }}¢
+      <strong>Créditos:</strong> {{ formatoNumero(enemigo.creditos) }}¢
       <Objeto v-for="objeto of dropActual" :objeto="objeto" :enDrop="true" :key="objeto.id"></Objeto>
     </div>
     <Pocion v-for="pocion of dropPociones" :pocion="pocion" :onclick="agregarAlInventario" accion="Recoger" :key="`dp-${pocion.id}`"></Pocion>
@@ -34,6 +34,7 @@
         'capacidadMaxima',
         'capacidadMaximaBolsaPociones',
         'recogerLootCompleto',
+        'enemigo'
       ])
     }
   }
